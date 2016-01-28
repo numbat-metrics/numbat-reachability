@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+var args = require('yargs')
+  .alias('interval', 'i')
+
+  .alias('hosts', 'h')
+  .array('hosts')
+
+  .alias('uri', 'u')
+
+  .argv
+
+var Producer = require('../')
+
+Producer({
+  interval: args.interval,
+  hosts: args.hosts,
+  uri: args.uri,
+  app: 'reachability'
+})
