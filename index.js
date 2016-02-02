@@ -59,7 +59,7 @@ var checks = {
     httpCheck(https, url, cb)
   },
   redis: function (url, cb) {
-    redis.createClient(url)
+    redis.createClient(url.format(url))
       .on('error', function () {
         this.end()
         cb(null, false)
