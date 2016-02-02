@@ -72,6 +72,8 @@ var checks = {
 }
 
 var ReachabilityProducer = module.exports = function(options) {
+  options.app = 'reachability';
+
   var emitter = new Emitter(options)
   var logger = options.logger || bole('numbat-reachability')
   var parsed = options.hosts.map(url.parse)
