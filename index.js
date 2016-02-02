@@ -99,10 +99,11 @@ var ReachabilityProducer = module.exports = function(options) {
         })
       }
 
-      results.forEach(function (result) {
+      results.forEach(function (result, i) {
         emitter.metric({
           name: 'reachability',
-          value: result ? 1 : 0
+          value: result ? 1 : 0,
+          target: options.hosts[i]
         })
       })
     })
