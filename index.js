@@ -71,6 +71,12 @@ var checks = {
   }
 }
 
+function stripAuth(url_) {
+  var parsed = url.parse(url_)
+  delete parsed.auth
+  return url.format(parsed)
+}
+
 var ReachabilityProducer = module.exports = function(options) {
   options.app = 'reachability';
 
@@ -105,7 +111,7 @@ var ReachabilityProducer = module.exports = function(options) {
         emitter.metric({
           name: 'reachability',
           value: result ? 1 : 0,
-          target: options.hosts[i]
+          target: stripAuth(options.hosts[i])
         })
       })
     })
