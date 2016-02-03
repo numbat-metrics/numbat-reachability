@@ -16,3 +16,5 @@ Reachability({
   ]
 })
 ```
+
+Supports `redis://`, `http://`, `https://` and `tcp://` URLs.
