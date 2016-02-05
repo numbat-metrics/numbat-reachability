@@ -18,10 +18,11 @@ function httpCheck(module, url, cb) {
   cb = once(cb)
 
   var timeout = setTimeout(function () {
+    req.abort()
     cb(null, false)
   }, DEFAULT_TIMEOUT)
 
-  module.request({
+  var req = module.request({
     host: url.hostname,
     port: url.port,
     path: url.path,
