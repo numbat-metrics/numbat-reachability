@@ -41,14 +41,21 @@ function httpCheck(module, url, cb) {
 
 var checks = {
   tcp: function (url, cb) {
-    net.connect({
+    var timeout = setTimeout(function () {
+      socket.destroy()
+      cb(null, false)
+    }, DEFAULT_TIMEOUT);
+
+    var socket = net.connect({
       host: url.hostname,
       port: url.port
     })
       .on('error', function (err) {
+        clearTimeout(timeout)
         cb(null, false)
       })
       .on('connect', function () {
+        clearTimeout(timeout)
         this.end()
         cb(null, true)
       })
