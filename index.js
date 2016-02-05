@@ -67,12 +67,19 @@ var checks = {
     httpCheck(https, url, cb)
   },
   redis: function (url, cb) {
-    redis.createClient(url.format(url))
+    var timeout = setTimeout(function () {
+      client.end()
+      cb(null, false)
+    }, DEFAULT_TIMEOUT);
+
+    var client = redis.createClient(url.format(url))
       .on('error', function () {
+        clearTimeout(timeout)
         this.end()
         cb(null, false)
       })
       .on('ready', function () {
+        clearTimeout(timeout)
         this.end()
         cb(null, true)
       })
