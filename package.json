@@ -15,5 +15,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/numbat-metrics/numbat-reachability.git"
+  },
+  "devDependencies": {
+    "json-stream": "~1.0.0"
   }
 }
