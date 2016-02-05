@@ -99,7 +99,8 @@ var ReachabilityProducer = module.exports = function(options) {
   var logger = options.logger || bole('numbat-reachability')
   var parsed = options.hosts.map(url.parse)
 
-  function produce() {
+
+  function produce(done) {
     async.map(parsed, function (host, next) {
       var proto = host.protocol.slice(0, -1)
 
@@ -129,13 +130,35 @@ var ReachabilityProducer = module.exports = function(options) {
           target: stripAuth(options.hosts[i])
         })
       })
+
+      done()
     })
   }
 
-  var interval = setInterval(produce, options.interval || DEFAULT_INTERVAL)
-  produce()
+  var interval
+  var stopped = false
+
+  ;(function fn() {
+    var start = Date.now()
+    produce(function(){
+      if(stopped) return
+
+      var latency = Date.now()-start
+      emitter.metric({
+        name:'poll-time',
+        value:latency
+      })
+
+      interval = setTimeout(fn, (options.interval || DEFAULT_INTERVAL) - latency)
+    })
+  }())
 
   return function stop() {
+    stopped = true
     clearInterval(interval)
   }
+}
+
+module.exports.setDefaultTimeout = function(t){
+  DEFAULT_TIMEOUT = t
 }
