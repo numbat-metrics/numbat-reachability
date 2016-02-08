@@ -3,8 +3,6 @@ var net = require('net')
 var numock = require('numbat-collector-mock')
 var etcServices = require('etc-services')
 
-console.log(etcServices)
-
 
 var Producer = require('../')
 var TARGET_PORT = 9998
