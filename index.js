@@ -42,7 +42,6 @@ function httpCheck(module, url, cb) {
 var checks = {
   tcp: function (url, cb) {
     var timeout = setTimeout(function () {
-      console.log('TIMEOUT!!')
       socket.destroy()
       cb(null, false, true)
     }, DEFAULT_TIMEOUT);
@@ -126,7 +125,6 @@ var ReachabilityProducer = module.exports = function(options) {
       }
 
       results.forEach(function (result, i) {
-        console.log('result> ',result)
         emitter.metric({
           name: 'reachability',
           value: result ? 1 : 0,
