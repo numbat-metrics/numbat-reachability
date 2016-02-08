@@ -38,27 +38,54 @@ test("can test tcp",function(t){
 
 test('unreachable',function(t){
 
-    var collector = numock(ANALYZER_PORT)
+  var collector = numock(ANALYZER_PORT)
 
-    stopProducer = Producer({
-      uri: 'tcp://127.0.0.1:' + ANALYZER_PORT,
-      hosts: [
-        'tcp://127.0.0.1:' + TARGET_PORT
-      ],
-      interval: 100
+  stopProducer = Producer({
+    uri: 'tcp://127.0.0.1:' + ANALYZER_PORT,
+    hosts: [
+      'tcp://127.0.0.1:' + TARGET_PORT
+    ],
+    interval: 100
+  })
+
+
+  collector.once('data',function(){
+    stopProducer()
+    collector.finished(function(err,metrics){
+
+      console.log(metrics)
+      t.equals(metrics[0].name,'reachability','should have correct name')
+      t.equals(metrics[0].value,0,'should not be reachable')
+
+      t.end()
     })
+  })
 
+})
 
-    collector.once('data',function(){
-      stopProducer()
-      collector.finished(function(err,metrics){
+test("net timeout",function(t){
+  Producer.setDefaultTimeout(0)
+  
+  var collector = numock(ANALYZER_PORT)
 
-        console.log(metrics)
-        t.equals(metrics[0].name,'reachability','should have correct name')
-        t.equals(metrics[0].value,0,'should not be reachable')
+  stopProducer = Producer({
+    uri: 'tcp://127.0.0.1:' + ANALYZER_PORT,
+    hosts: [
+      'tcp://127.0.0.1:' + TARGET_PORT
+    ],
+    interval: 100
+  })
 
-        t.end()
-      })
+  collector.once('data',function(){
+    stopProducer()
+    collector.finished(function(err,metrics){
+
+      console.log(metrics)
+      t.equals(metrics[0].name,'reachability','should have correct name')
+      t.equals(metrics[0].value,0,'should not be reachable')
+
+      t.end()
     })
-
+  })
+  
 })
