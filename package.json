@@ -24,6 +24,7 @@
     "tape": "^4.4.0"
   },
   "scripts": {
-    "test": "nyc tape ./test/*.js"
+    "test": "nyc tape ./test/*.js",
+    "htmlcov":"rm -fr ./coverage && nyc -r html tape ./test/*.js; echo \"open ./coverage in your browser\""
   }
 }

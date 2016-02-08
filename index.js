@@ -109,6 +109,7 @@ var ReachabilityProducer = module.exports = function(options) {
       else {
         if (etcServices[proto]) {
           logger.warn('guessing port for ' + proto)
+
           checks.tcp({
             hostname: host.hostname,
             protocol: 'tcp:',
