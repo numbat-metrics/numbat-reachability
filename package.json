@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "json-stream": "~1.0.0",
-    "numbat-collector-mock": "^1.0.0",
+    "numbat-collector-mock": "^1.0.1",
     "nyc": "^5.5.0",
     "tape": "^4.4.0"
   },
