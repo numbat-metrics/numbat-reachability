@@ -18,10 +18,11 @@ function httpCheck(module, url, cb) {
   cb = once(cb)
 
   var timeout = setTimeout(function () {
-    cb(null, false)
+    req.abort()
+    cb(null, false,true)
   }, DEFAULT_TIMEOUT)
 
-  module.request({
+  var req = module.request({
     host: url.hostname,
     port: url.port,
     path: url.path,
@@ -40,14 +41,21 @@ function httpCheck(module, url, cb) {
 
 var checks = {
   tcp: function (url, cb) {
-    net.connect({
+    var timeout = setTimeout(function () {
+      socket.destroy()
+      cb(null, false, true)
+    }, DEFAULT_TIMEOUT);
+
+    var socket = net.connect({
       host: url.hostname,
       port: url.port
     })
       .on('error', function (err) {
+        clearTimeout(timeout)
         cb(null, false)
       })
       .on('connect', function () {
+        clearTimeout(timeout)
         this.end()
         cb(null, true)
       })
@@ -59,12 +67,19 @@ var checks = {
     httpCheck(https, url, cb)
   },
   redis: function (url, cb) {
-    redis.createClient(url.format(url))
+    var timeout = setTimeout(function () {
+      client.end()
+      cb(null, false)
+    }, DEFAULT_TIMEOUT);
+
+    var client = redis.createClient(url.format(url))
       .on('error', function () {
+        clearTimeout(timeout)
         this.end()
         cb(null, false)
       })
       .on('ready', function () {
+        clearTimeout(timeout)
         this.end()
         cb(null, true)
       })
@@ -84,7 +99,8 @@ var ReachabilityProducer = module.exports = function(options) {
   var logger = options.logger || bole('numbat-reachability')
   var parsed = options.hosts.map(url.parse)
 
-  function produce() {
+
+  function produce(done) {
     async.map(parsed, function (host, next) {
       var proto = host.protocol.slice(0, -1)
 
@@ -92,6 +108,7 @@ var ReachabilityProducer = module.exports = function(options) {
       else {
         if (etcServices[proto]) {
           logger.warn('guessing port for ' + proto)
+
           checks.tcp({
             hostname: host.hostname,
             protocol: 'tcp:',
@@ -114,13 +131,35 @@ var ReachabilityProducer = module.exports = function(options) {
           target: stripAuth(options.hosts[i])
         })
       })
+
+      done()
     })
   }
 
-  var interval = setInterval(produce, options.interval || DEFAULT_INTERVAL)
-  produce()
+  var interval
+  var stopped = false
+
+  ;(function fn() {
+    var start = Date.now()
+    produce(function(){
+      if(stopped) return
+
+      var latency = Date.now()-start
+      emitter.metric({
+        name:'poll-time',
+        value:latency
+      })
+
+      interval = setTimeout(fn, (options.interval || DEFAULT_INTERVAL) - latency)
+    })
+  }())
 
   return function stop() {
+    stopped = true
     clearInterval(interval)
   }
+}
+
+module.exports.setDefaultTimeout = function(t){
+  DEFAULT_TIMEOUT = t
 }
