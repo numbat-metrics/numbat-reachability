@@ -19,7 +19,6 @@ test("net timeout",function(t){
         var e = new ee()
         e.destroy = function(){}
         e.write = function(){
-          console.log('write =(')
         }
         return e
       }    
@@ -42,7 +41,6 @@ test("net timeout",function(t){
     stopProducer()
     collector.finished(function(err,metrics){
 
-      console.log(metrics)
       t.equals(metrics[0].name,'reachability','should have correct name')
       t.equals(metrics[0].value,0,'should not be reachable')
 
