@@ -25,6 +25,6 @@
   },
   "scripts": {
     "test": "nyc tape ./test/*.js",
-    "htmlcov":"rm -fr ./coverage && nyc -r html tape ./test/*.js; echo \"open ./coverage in your browser\""
+    "htmlcov": "rm -fr ./coverage && nyc -r html tape ./test/*.js; echo \"open ./coverage in your browser\""
   }
 }
