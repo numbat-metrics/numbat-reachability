@@ -101,25 +101,26 @@ var ReachabilityProducer = module.exports = function(options) {
   var logger = options.logger || bole('numbat-reachability')
   var parsed = options.hosts.map(url.parse)
 
+  function produceOne(host, next) {
+    var proto = host.protocol.slice(0, -1)
+
+    if (checks[proto]) checks[proto](host, next)
+    else {
+      if (etcServices[proto]) {
+        logger.warn('guessing port for ' + proto)
+
+        checks.tcp({
+          hostname: host.hostname,
+          protocol: 'tcp:',
+          port: etcServices[proto][0]
+        }, next)
+      }
+      else next(new Error('Unknown protocol: ' + proto))
+    }
+  }
 
   function produce(done) {
-    async.map(parsed, function (host, next) {
-      var proto = host.protocol.slice(0, -1)
-
-      if (checks[proto]) checks[proto](host, next)
-      else {
-        if (etcServices[proto]) {
-          logger.warn('guessing port for ' + proto)
-
-          checks.tcp({
-            hostname: host.hostname,
-            protocol: 'tcp:',
-            port: etcServices[proto][0]
-          }, next)
-        }
-        else next(new Error('Unknown protocol: ' + proto))
-      }
-    }, function (err, results) {
+    async.map(parsed, produceOne, function (err, results) {
       if (err) {
         return emitter.metric({
           name: 'reachability.error'
