@@ -27,6 +27,7 @@ function httpCheck(module, url, cb) {
     port: url.port,
     path: url.path,
     auth: url.auth,
+    agent: false
   })
     .on('error', function (err) {
       clearTimeout(timeout)
