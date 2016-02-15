@@ -36,7 +36,8 @@ function httpCheck(module, url, cb) {
       clearTimeout(timeout)
       cb(null, res.statusCode >= 100 && res.statusCode < 500)
     })
-    .end()
+
+  req.end()
 }
 
 var checks = {
