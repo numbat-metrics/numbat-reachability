@@ -102,9 +102,37 @@ var ReachabilityProducer = module.exports = function(options) {
   var parsed = options.hosts.map(url.parse)
 
   function produceOne(host, next) {
+    var start = Date.now()
     var proto = host.protocol.slice(0, -1)
 
-    if (checks[proto]) checks[proto](host, next)
+    function done(err, result) {
+      var latency = Date.now() - start
+      var safeHost = stripAuth(host)
+
+      if (err) {
+        emitter.metric({
+          name: 'reachability.error',
+          target: safeHost
+        })
+      }
+      else {
+        emitter.metric({
+          name: 'reachability',
+          value: result ? 1 : 0,
+          target: safeHost
+        })
+
+        emitter.metric({
+          name: 'poll-time',
+          value: latency,
+          target: safeHost
+        })
+      }
+
+      next(err, result, latency)
+    }
+
+    if (checks[proto]) checks[proto](host, done)
     else {
       if (etcServices[proto]) {
         logger.warn('guessing port for ' + proto)
@@ -113,53 +141,29 @@ var ReachabilityProducer = module.exports = function(options) {
           hostname: host.hostname,
           protocol: 'tcp:',
           port: etcServices[proto][0]
-        }, next)
+        }, done)
       }
-      else next(new Error('Unknown protocol: ' + proto))
+      else done(new Error('Unknown protocol: ' + proto))
     }
   }
 
-  function produce(done) {
-    async.map(parsed, produceOne, function (err, results) {
-      if (err) {
-        return emitter.metric({
-          name: 'reachability.error'
-        })
-      }
-
-      results.forEach(function (result, i) {
-        emitter.metric({
-          name: 'reachability',
-          value: result ? 1 : 0,
-          target: stripAuth(options.hosts[i])
-        })
-      })
-
-      done()
-    })
-  }
-
-  var interval
+  var intervals = {}
   var stopped = false
 
-  ;(function fn() {
+  parsed.forEach(function fn(host) {
     var start = Date.now()
-    produce(function(){
+    delete intervals[host] // if there was one, it doesn't exist anymore
+    produceOne(host, function(err, result, latency){
       if(stopped) return
-
-      var latency = Date.now()-start
-      emitter.metric({
-        name:'poll-time',
-        value:latency
-      })
-
-      interval = setTimeout(fn, (options.interval || DEFAULT_INTERVAL) - latency)
+      intervals[host] = setTimeout(fn.bind(null, host), (options.interval || DEFAULT_INTERVAL) - latency)
     })
-  }())
+  })
 
   return function stop() {
     stopped = true
-    clearInterval(interval)
+    Object.keys(intervals).map(function (k) {
+      clearInterval(intervals[k])
+    })
   }
 }
 
