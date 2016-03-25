@@ -11,7 +11,7 @@ var redis = require('redis')
 var Emitter = require('numbat-emitter')
 var etcServices = require('etc-services')
 
-var DEFAULT_INTERVAL = 1000
+var DEFAULT_INTERVAL = 30 * 1000 // 30 seconds
 var DEFAULT_TIMEOUT = 10000
 
 function httpCheck(module, url, cb) {
