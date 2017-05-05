@@ -1,4 +1,6 @@
 # numbat-reachability
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/numbat-metrics/numbat-reachability.svg)](https://greenkeeper.io/)
 Send metrics describing whether a thing is reachable.
 
 Say your thing depends on a Redis running somewhere. You want to know whether
